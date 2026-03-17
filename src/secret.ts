@@ -2,11 +2,12 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const PORT = process.env.PORT || 5000;
-const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/ser_managegments";
+const mongoUri = process.env.MONGODB_URI || "";
 const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
 const NODE_ENV = process.env.NODE_ENV || "development";
-const API_KEY = process.env.API_KEY;
-const CLOUD_NAME = process.env.CLOUD_NAME;
+const API_KEY = process.env.CLOUDINARY_API_KEY;
+const CLOUD_NAME = process.env.CLOUDINARY_CLOUD_NAME;
+const CLOUDINARY_API_SECRET = process.env.CLOUDINARY_API_SECRET;
 
 // Use JWT_ACCESS_SECRET to match your JWT utility expectations
 const jwtAccessKey = process.env.JWT_ACCESS_SECRET || 'f6bd99da70ad4d9853347c184bde6d77f412405e468df02b810be908c7ab86d6e24057c6a58d420349904a799499fd64f2028fd2fa6eefb7b30928d56fedca3e';
@@ -34,6 +35,7 @@ export {
     clientUrl,
     API_KEY,
     CLOUD_NAME,
+    CLOUDINARY_API_SECRET,
     STRIPE_SECRET_KEY,
     STRIPE_PUBLISHABLE_KEY,
     STRIPE_WEBHOOK_SECRET,
