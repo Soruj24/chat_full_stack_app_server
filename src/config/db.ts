@@ -13,7 +13,7 @@ export const connectDatabase = async (): Promise<void> => {
     return;
   }
   try {
-    connectionPromise = mongoose.connect(mongoUri);
+    connectionPromise = mongoose.connect(mongoUri, { family: 4 });
     await connectionPromise;
     console.log(`✅ MongoDB Connected`);
   } catch (error) {
