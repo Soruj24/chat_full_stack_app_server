@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import mongoose from "mongoose";
 import { UserRole } from "../models/interfaces/IUser";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -1942,7 +1943,7 @@ const handleUpdateUserRole = asyncHandler(
       await user.save();
 
       // Log the role change activity
-      await UserActivity.create([
+      await UserActivity.create(
         {
           userId: adminId,
           activityType: 'admin_role_changed',
@@ -1950,7 +1951,7 @@ const handleUpdateUserRole = asyncHandler(
           ipAddress: getClientIP(req as unknown as Request),
           userAgent: req.get("User-Agent"),
           metadata: {
-            targetUserId: userId,
+            targetUserId: userId as string,
             targetUserEmail: user.email,
             oldRole,
             newRole: role
@@ -1958,7 +1959,7 @@ const handleUpdateUserRole = asyncHandler(
           status: "success",
         },
         {
-          userId: userId,
+          userId: new mongoose.Types.ObjectId(userId as string),
           activityType: 'role_changed',
           description: `Your role was changed from ${oldRole} to ${role} by administrator`,
           ipAddress: getClientIP(req as unknown as Request),
@@ -1971,7 +1972,7 @@ const handleUpdateUserRole = asyncHandler(
           },
           status: "info",
         }
-      ]);
+      );
 
       return successResponse(res, {
         statusCode: 200,
@@ -2023,7 +2024,7 @@ const handleSendEmailToUser = asyncHandler(
       console.log("✅ Admin email sent successfully to:", user.email);
 
       // Log the email sending activity
-      await UserActivity.create([
+      await UserActivity.create(
         {
           userId: adminId,
           activityType: 'admin_email_sent',
@@ -2031,7 +2032,7 @@ const handleSendEmailToUser = asyncHandler(
           ipAddress: getClientIP(req as unknown as Request),
           userAgent: req.get("User-Agent"),
           metadata: {
-            targetUserId: userId,
+            targetUserId: userId as string,
             targetUserEmail: user.email,
             subject,
             messagePreview: message.substring(0, 100) + '...',
@@ -2040,7 +2041,7 @@ const handleSendEmailToUser = asyncHandler(
           status: "success",
         },
         {
-          userId: userId,
+          userId: new mongoose.Types.ObjectId(userId as string),
           activityType: 'admin_email_received',
           description: `Received email from administrator`,
           ipAddress: getClientIP(req as unknown as Request),
@@ -2055,7 +2056,7 @@ const handleSendEmailToUser = asyncHandler(
           },
           status: "info",
         }
-      ]);
+      );
 
       return successResponse(res, {
         statusCode: 200,

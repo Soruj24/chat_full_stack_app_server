@@ -290,7 +290,7 @@ UserActivitySchema.statics.logActivity = async function (activityData: {
 };
 
 // Pre-save middleware to trim strings
-UserActivitySchema.pre('save', function (next) {
+UserActivitySchema.pre('save', async function () {
     if (this.ipAddress) this.ipAddress = this.ipAddress.trim();
     if (this.userAgent) this.userAgent = this.userAgent.trim();
     
@@ -309,16 +309,13 @@ UserActivitySchema.pre('save', function (next) {
         if (this.deviceInfo.device) this.deviceInfo.device = this.deviceInfo.device.trim();
         if (this.deviceInfo.platform) this.deviceInfo.platform = this.deviceInfo.platform.trim();
     }
-    
-    next();
 });
 
 // Pre-save middleware to ensure timestamp is set
-UserActivitySchema.pre('save', function (next) {
+UserActivitySchema.pre('save', function () {
     if (!this.timestamp) {
         this.timestamp = new Date();
     }
-    next();
 });
 
 export interface IUserActivityModel extends Model<IUserActivity> {

@@ -13,7 +13,19 @@ export const connectDatabase = async (): Promise<void> => {
     return;
   }
   try {
-    connectionPromise = mongoose.connect(mongoUri, { family: 4 });
+    const maskedUri = mongoUri.replace(/\/\/(.*):(.*)@/, "//***:***@");
+    console.log(`🔌 Connecting to MongoDB: ${maskedUri}...`);
+    
+    mongoose.connection.on('connected', () => console.log('📡 Mongoose connected to DB'));
+    mongoose.connection.on('error', (err) => console.error('📡 Mongoose connection error:', err));
+    mongoose.connection.on('disconnected', () => console.log('📡 Mongoose disconnected'));
+
+    const options: mongoose.ConnectOptions = {
+      serverSelectionTimeoutMS: 10000,
+      connectTimeoutMS: 10000,
+      family: 4,
+    };
+    connectionPromise = mongoose.connect(mongoUri, options);
     await connectionPromise;
     console.log(`✅ MongoDB Connected`);
   } catch (error) {

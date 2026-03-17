@@ -89,7 +89,7 @@ const SupportTicketSchema: Schema<ISupportTicket> = new Schema(
 );
 
 // Pre-save hook to generate ticket number if not provided
-SupportTicketSchema.pre("validate", async function (this: ISupportTicket, next) {
+SupportTicketSchema.pre("validate", async function (this: ISupportTicket) {
   if (!this.ticketNumber) {
     const date = new Date();
     const year = date.getFullYear().toString().substr(-2);
@@ -97,7 +97,6 @@ SupportTicketSchema.pre("validate", async function (this: ISupportTicket, next) 
     const count = await mongoose.model("SupportTicket").countDocuments();
     this.ticketNumber = `TKT-${year}${month}-${(count + 1).toString().padStart(4, "0")}`;
   }
-  next();
 });
 
 export const SupportTicket = mongoose.model<ISupportTicket>(

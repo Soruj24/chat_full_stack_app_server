@@ -25,7 +25,7 @@ export const getNotifications = async (req: AuthenticatedRequest, res: Response,
 export const markAsRead = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const { id } = req.params;
-    const notification = await notificationService.markAsRead(id);
+    const notification = await notificationService.markAsRead(id as string);
     
     if (!notification) {
       throw createError(404, "Notification not found");

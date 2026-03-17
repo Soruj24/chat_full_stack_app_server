@@ -116,7 +116,7 @@ const paymentMethodSchema = new Schema<PaymentMethodDocument>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: function(doc, ret: any) {
         delete ret._id;
         delete ret.__v;
         delete ret.createdAt;
@@ -131,7 +131,7 @@ const paymentMethodSchema = new Schema<PaymentMethodDocument>(
     },
     toObject: {
       virtuals: true,
-      transform: function(doc, ret) {
+      transform: function(doc, ret: any) {
         delete ret._id;
         delete ret.__v;
         return ret;
@@ -184,15 +184,15 @@ paymentMethodSchema.virtual('user', {
 
 // Indexes
 paymentMethodSchema.index({ userId: 1, isDefault: 1 });
-paymentMethodSchema.index({ stripePaymentMethodId: 1 }, { unique: true });
+paymentMethodSchema.index({ stripePaymentMethodId: 1 }, { unique: true } as any);
 paymentMethodSchema.index({ userId: 1, type: 1 });
-paymentMethodSchema.index({ fingerprint: 1 }, { unique: true, sparse: true });
+paymentMethodSchema.index({ fingerprint: 1 }, { unique: true, sparse: true } as any);
 paymentMethodSchema.index({ isActive: 1 });
-paymentMethodSchema.index({ deletedAt: 1 }, { sparse: true });
+paymentMethodSchema.index({ deletedAt: 1 }, { sparse: true } as any);
 paymentMethodSchema.index({ createdAt: -1 });
 
 // Pre-save middleware to ensure only one default payment method per user
-paymentMethodSchema.pre('save', async function(next) {
+paymentMethodSchema.pre('save', async function() {
   if (this.isDefault && this.isModified('isDefault')) {
     try {
       // Remove default status from other payment methods for this user
@@ -205,34 +205,30 @@ paymentMethodSchema.pre('save', async function(next) {
         { $set: { isDefault: false } }
       );
     } catch (error: any) {
-      return next(error);
+      throw error;
     }
   }
-  next();
 });
 
-// Pre-save middleware to validate expiry date
-paymentMethodSchema.pre('save', function(next) {
-  if (this.expiryMonth && this.expiryYear) {
-    const now = new Date();
-    const expiryDate = new Date(this.expiryYear, this.expiryMonth - 1, 1);
-    
-    if (expiryDate < now) {
-      const error = new mongoose.Error.ValidationError(this as any);
-      // expiryMonth error
-      error.errors.expiryMonth = new mongoose.Error.ValidatorError('Card has expired');
-      (error.errors.expiryMonth as any).type = 'expired';
-      (error.errors.expiryMonth as any).path = 'expiryMonth';
-      (error.errors.expiryMonth as any).value = this.expiryMonth;
-      // expiryYear error
-      error.errors.expiryYear = new mongoose.Error.ValidatorError('Card has expired');
-      (error.errors.expiryYear as any).type = 'expired';
-      (error.errors.expiryYear as any).path = 'expiryYear';
-      (error.errors.expiryYear as any).value = this.expiryYear;
-      return next(error);
+// Pre-save middleware to validate expiry date for cards
+paymentMethodSchema.pre('save', function() {
+  if (this.type === 'card' && this.isModified('expiryMonth') || this.isModified('expiryYear')) {
+    if (this.expiryMonth && this.expiryYear) {
+      const now = new Date();
+      const currentYear = now.getFullYear();
+      const currentMonth = now.getMonth() + 1;
+      
+      if (
+        this.expiryYear < currentYear ||
+        (this.expiryYear === currentYear && this.expiryMonth < currentMonth)
+      ) {
+        const error = new mongoose.Error.ValidationError(this as any);
+        (error.errors as any).expiryMonth = new mongoose.Error.ValidatorError({ message: 'Card has expired' } as any);
+        (error.errors as any).expiryYear = new mongoose.Error.ValidatorError({ message: 'Card has expired' } as any);
+        throw error;
+      }
     }
   }
-  next();
 });
 
 // Static method to find default payment method for user

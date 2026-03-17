@@ -17,14 +17,14 @@ export const createMessage = async (req: Request, res: Response, next: NextFunct
 
     const { chatId, text, type, mediaUrl, fileName, fileSize, duration, location, contact, replyTo, isForwarded } = req.body;
 
-    if (!chatId || !mongoose.Types.ObjectId.isValid(chatId)) {
+    if (!chatId || !mongoose.isValidObjectId(chatId)) {
       errorResponse(res, { statusCode: 400, message: "Invalid chatId" });
       return;
     }
 
     const message = await Message.create({
-      chatId: new mongoose.Types.ObjectId(chatId),
-      sender: new mongoose.Types.ObjectId(userId),
+      chatId: chatId as any,
+      sender: userId as any,
       text,
       type: type || 'text',
       mediaUrl,
@@ -33,8 +33,8 @@ export const createMessage = async (req: Request, res: Response, next: NextFunct
       duration,
       location,
       contact,
-      replyTo: replyTo && mongoose.Types.ObjectId.isValid(replyTo) 
-        ? new mongoose.Types.ObjectId(replyTo) 
+      replyTo: replyTo && mongoose.isValidObjectId(replyTo) 
+        ? (replyTo as any)
         : undefined,
       isForwarded: !!isForwarded,
       timestamp: new Date(),
@@ -96,12 +96,12 @@ export const pinMessage = async (req: Request, res: Response, next: NextFunction
             return;
         }
 
-        const isPinned = chat.pinnedMessages.includes(new mongoose.Types.ObjectId(id));
-        
+        const isPinned = chat.pinnedMessages.includes(id as any);
+
         if (isPinned) {
-            chat.pinnedMessages = chat.pinnedMessages.filter((mId: mongoose.Types.ObjectId) => mId.toString() !== id);
+            chat.pinnedMessages = chat.pinnedMessages.filter((msgId: any) => msgId.toString() !== id.toString());
         } else {
-            chat.pinnedMessages.push(new mongoose.Types.ObjectId(id));
+            chat.pinnedMessages.push(id as any);
         }
 
         await chat.save();
@@ -126,8 +126,8 @@ export const reactMessage = async (req: Request, res: Response, next: NextFuncti
       errorResponse(res, { statusCode: 401, message: "Unauthorized" });
       return;
     }
-    if (!messageId || !mongoose.Types.ObjectId.isValid(messageId) || !emoji) {
-      errorResponse(res, { statusCode: 400, message: "Invalid payload" });
+    if (!messageId || !mongoose.isValidObjectId(messageId) || !emoji) {
+      errorResponse(res, { statusCode: 400, message: "Invalid input" });
       return;
     }
 
@@ -137,18 +137,22 @@ export const reactMessage = async (req: Request, res: Response, next: NextFuncti
       return;
     }
 
-    // Toggle reaction for this user/emoji
-    const existingIndex = message.reactions.findIndex(
-      (r: { emoji: string; userId?: mongoose.Types.ObjectId }) =>
-        r.emoji === emoji && r.userId?.toString() === userId.toString()
+    const existingReactionIndex = message.reactions.findIndex(
+      (r: any) => r.userId.toString() === userId.toString()
     );
-    if (existingIndex > -1) {
-      message.reactions.splice(existingIndex, 1);
+
+    if (existingReactionIndex > -1) {
+      if (message.reactions[existingReactionIndex].emoji === emoji) {
+        message.reactions.splice(existingReactionIndex, 1);
+      } else {
+        message.reactions[existingReactionIndex].emoji = emoji;
+      }
     } else {
       message.reactions.push({
-        userId: new mongoose.Types.ObjectId(userId),
-        emoji
-      } as any);
+        userId: userId as any,
+        emoji,
+        timestamp: new Date()
+      });
     }
     await message.save();
 
@@ -182,8 +186,8 @@ export const starMessage = async (req: Request, res: Response, next: NextFunctio
       errorResponse(res, { statusCode: 401, message: "Unauthorized" });
       return;
     }
-    if (!id || !mongoose.Types.ObjectId.isValid(id)) {
-      errorResponse(res, { statusCode: 400, message: "Invalid message id" });
+    if (!id || !mongoose.isValidObjectId(id)) {
+      errorResponse(res, { statusCode: 400, message: "Invalid messageId" });
       return;
     }
 
@@ -193,24 +197,22 @@ export const starMessage = async (req: Request, res: Response, next: NextFunctio
       return;
     }
 
-    const hasStarred =
-      Array.isArray((user as any).starredMessages) &&
-      (user as any).starredMessages.some((m: any) => m.toString() === id);
+    const isStarred = (user as any).starredMessages?.includes(id as any);
 
-    if (hasStarred) {
+    if (isStarred) {
       await User.findByIdAndUpdate(userId, {
-        $pull: { starredMessages: new mongoose.Types.ObjectId(id) }
+        $pull: { starredMessages: id as any }
       });
     } else {
       await User.findByIdAndUpdate(userId, {
-        $addToSet: { starredMessages: new mongoose.Types.ObjectId(id) }
+        $addToSet: { starredMessages: id as any }
       });
     }
 
     successResponse(res, {
       statusCode: 200,
-      message: hasStarred ? "Message unstarred" : "Message starred",
-      payload: { isStarred: !hasStarred }
+      message: isStarred ? "Message unstarred" : "Message starred",
+      payload: { isStarred: !isStarred }
     });
     return;
   } catch (error) {

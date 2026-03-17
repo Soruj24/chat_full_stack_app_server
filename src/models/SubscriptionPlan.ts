@@ -116,26 +116,28 @@ const subscriptionPlanSchema = new Schema<SubscriptionPlanDocument>(
     toJSON: {
       virtuals: true,
       transform: function (doc, ret) {
-        delete ret._id;
-        delete ret.__v;
-        delete ret.createdAt;
-        delete ret.updatedAt;
-        delete ret.metadata;
-        delete ret.stripePriceId;
-        delete ret.stripeProductId;
-        delete ret.sortOrder;
-        delete ret.createdBy;
-        return ret;
+        const transformed = ret as any;
+        delete transformed._id;
+        delete transformed.__v;
+        delete transformed.createdAt;
+        delete transformed.updatedAt;
+        delete transformed.metadata;
+        delete transformed.stripePriceId;
+        delete transformed.stripeProductId;
+        delete transformed.sortOrder;
+        delete transformed.createdBy;
+        return transformed;
       },
     },
     toObject: {
       virtuals: true,
       transform: function (doc, ret) {
-        delete ret._id;
-        delete ret.__v;
-        delete ret.createdAt;
-        delete ret.updatedAt;
-        return ret;
+        const transformed = ret as any;
+        delete transformed._id;
+        delete transformed.__v;
+        delete transformed.createdAt;
+        delete transformed.updatedAt;
+        return transformed;
       },
     },
   }
@@ -160,15 +162,14 @@ subscriptionPlanSchema.virtual('monthlyPrice').get(function (this: SubscriptionP
 // Indexes
 subscriptionPlanSchema.index({ isActive: 1, sortOrder: 1 });
 subscriptionPlanSchema.index({ price: 1 });
-subscriptionPlanSchema.index({ stripePriceId: 1 }, { unique: true, sparse: true });
-subscriptionPlanSchema.index({ stripeProductId: 1 }, { unique: true, sparse: true });
+subscriptionPlanSchema.index({ stripePriceId: 1 }, { unique: true, sparse: true } as any);
+subscriptionPlanSchema.index({ stripeProductId: 1 }, { unique: true, sparse: true } as any);
 
 // Pre-save hook to ensure id is set
-subscriptionPlanSchema.pre('save', function (next) {
+subscriptionPlanSchema.pre('save', async function () {
   if (!this.id) {
     this.id = this._id.toString();
   }
-  next();
 });
 
 const SubscriptionPlan = mongoose.model<SubscriptionPlanDocument>(

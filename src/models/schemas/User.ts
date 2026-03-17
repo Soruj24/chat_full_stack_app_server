@@ -8,13 +8,13 @@ import { UserEvents } from "../events/UserEvents";
 import { IUserDoc, UserModel } from "../types/UserTypes";
 
 // Apply all plugins and methods
-applyUserHooks(UserSchema);
-applyUserMethods(UserSchema);
-applyUserStatics(UserSchema);
-applyUserVirtuals(UserSchema);
+applyUserHooks(UserSchema as any);
+applyUserMethods(UserSchema as any);
+applyUserStatics(UserSchema as any);
+applyUserVirtuals(UserSchema as any);
 
 // Add event emitter plugin
-UserSchema.plugin(function (schema: mongoose.Schema<IUserDoc, UserModel>) {
+UserSchema.plugin(function (schema: any) {
   const userEvents = UserEvents.getInstance();
 
   schema.post('save', function (doc: IUserDoc) {
@@ -51,7 +51,7 @@ UserSchema.plugin(function (schema: mongoose.Schema<IUserDoc, UserModel>) {
 });
 
 // Create the User model
-const User: UserModel = mongoose.model<IUserDoc, UserModel>('User', UserSchema);
+const User = mongoose.model<IUserDoc, UserModel>('User', UserSchema);
 
 // Export everything
 export default User;

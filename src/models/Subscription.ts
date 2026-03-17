@@ -1,34 +1,24 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
-import { ISubscriptionPlan } from '../types/billing.types';
+import { Subscription } from '../types/billing.types';
 
-// Combine the subscription plan fields with Mongoose Document, omitting the conflicting `id` field
+// Combine the subscription fields with Mongoose Document, omitting the conflicting `id` field
 export type SubscriptionDocument = Document &
-  Omit<ISubscriptionPlan, 'id'> & {
+  Omit<Subscription, 'id' | 'userId' | 'planId' | 'canceledAt' | 'reactivatedAt' | 'trialStart' | 'trialEnd' | 'billingCycleAnchor' | 'currentPeriodStart' | 'currentPeriodEnd'> & {
     _id: Types.ObjectId;
+    userId: Types.ObjectId;
+    planId: Types.ObjectId;
+    currentPeriodStart: Date;
+    currentPeriodEnd: Date;
+    canceledAt?: Date;
+    reactivatedAt?: Date;
     trialStart?: Date;
     trialEnd?: Date;
     billingCycleAnchor?: Date;
-    id: Types.ObjectId; // ensure Document's `id` matches ObjectId
-    userId: Types.ObjectId;
-    planId: Types.ObjectId;
-    // Subscription period fields
-    currentPeriodStart: Date;
-    currentPeriodEnd: Date;
-    // Status and cancellation fields used in virtuals/methods
-    status: string;
-    cancelAtPeriodEnd?: boolean;
-    canceledAt?: Date;
-    reactivatedAt?: Date;
-    reactivatedBy?: Types.ObjectId;
-    // User who cancelled the subscription
     canceledBy?: Types.ObjectId;
-    // Cancellation reason (added to match schema)
-    cancellationReason?: string;
-    // Timestamps
+    reactivatedBy?: Types.ObjectId;
     createdAt: Date;
     updatedAt: Date;
-    // Instance method to cancel subscription
-    cancel: (reason: string, userId: string) => void; // Add the cancel method
+    cancel: (reason: string, userId: string) => void;
   };
 
 const subscriptionSchema = new Schema<SubscriptionDocument>(
@@ -142,7 +132,7 @@ const subscriptionSchema = new Schema<SubscriptionDocument>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function (doc, ret) {
+      transform: function (doc, ret: any) {
         delete ret._id;
         delete ret.__v;
         delete ret.createdAt;
@@ -157,7 +147,7 @@ const subscriptionSchema = new Schema<SubscriptionDocument>(
     },
     toObject: {
       virtuals: true,
-      transform: function (doc, ret) {
+      transform: function (doc, ret: any) {
         delete ret._id;
         delete ret.__v;
         return ret;
@@ -221,31 +211,30 @@ subscriptionSchema.virtual('user', {
 
 // Indexes
 subscriptionSchema.index({ userId: 1, status: 1 });
-subscriptionSchema.index({ stripeSubscriptionId: 1 }, { unique: true });
+subscriptionSchema.index({ stripeSubscriptionId: 1 }, { unique: true } as any);
 subscriptionSchema.index({ stripeCustomerId: 1 });
 subscriptionSchema.index({ status: 1, currentPeriodEnd: 1 });
 subscriptionSchema.index({ cancelAtPeriodEnd: 1, currentPeriodEnd: 1 });
 subscriptionSchema.index({ createdAt: -1 });
 
 // Middleware to handle subscription status changes
-subscriptionSchema.pre('save', function (next) {
+subscriptionSchema.pre('save', function () {
   const now = new Date();
+  const doc = this as any;
 
   // If subscription is being canceled, set canceledAt
-  if (this.isModified('status') && this.status === 'canceled' && !this.canceledAt) {
-    this.canceledAt = now;
+  if (doc.isModified('status') && doc.status === 'canceled' && !doc.canceledAt) {
+    doc.canceledAt = now;
   }
 
   // If subscription is being reactivated, set reactivatedAt
   if (
-    this.isModified('status') &&
-    (this.status === 'active' || this.status === 'trialing') &&
-    this.reactivatedAt === undefined
+    doc.isModified('status') &&
+    (doc.status === 'active' || doc.status === 'trialing') &&
+    doc.reactivatedAt === undefined
   ) {
-    this.reactivatedAt = now;
+    doc.reactivatedAt = now;
   }
-
-  next();
 });
 
 // Static method to find active subscription for user

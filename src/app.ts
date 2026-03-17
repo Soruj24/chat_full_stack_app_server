@@ -102,6 +102,7 @@ app.use(
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(compression());
 
+console.log("Initializing app middleware...");
 app.use(morgan(NODE_ENV === "production" ? "combined" : "dev"));
 
 // Data sanitization against NoSQL query injection

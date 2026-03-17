@@ -20,7 +20,16 @@ export const io = new Server(server, {
 });
 
 registerSocketHandlers(io);
-connectDatabase()
-server.listen(PORT, () =>
-  console.log(`🚀 Server running on http://localhost:${PORT}`
-  ));
+const startServer = async () => {
+  try {
+    await connectDatabase();
+    server.listen(PORT, () =>
+      console.log(`🚀 Server running on http://localhost:${PORT}`)
+    );
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();

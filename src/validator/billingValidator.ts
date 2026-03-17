@@ -1,6 +1,6 @@
 // validator/billingValidator.ts
 import { body, param, query, ValidationChain } from "express-validator";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 export const rateLimitConfig = {
   general: {
@@ -48,7 +48,7 @@ export const validationRules = {
       .withMessage("Plan ID is required")
       .isString()
       .withMessage("Plan ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid Plan ID format"),
     body("paymentMethodId")
       .optional()
@@ -71,7 +71,7 @@ export const validationRules = {
       .withMessage("Plan ID is required")
       .isString()
       .withMessage("Plan ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid Plan ID format"),
   ],
 
@@ -102,7 +102,7 @@ export const validationRules = {
       .withMessage("Payment method ID is required")
       .isString()
       .withMessage("Payment method ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid payment method ID format"),
   ],
 
@@ -112,7 +112,7 @@ export const validationRules = {
       .withMessage("Payment method ID is required")
       .isString()
       .withMessage("Payment method ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid payment method ID format"),
   ],
 
@@ -160,7 +160,7 @@ export const validationRules = {
       .withMessage("Invoice ID is required")
       .isString()
       .withMessage("Invoice ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid invoice ID format"),
   ],
 
@@ -171,7 +171,7 @@ export const validationRules = {
       .withMessage("Plan ID is required")
       .isString()
       .withMessage("Plan ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid Plan ID format"),
     body("successUrl")
       .optional()
@@ -197,7 +197,7 @@ export const validationRules = {
       .optional()
       .isString()
       .withMessage("User ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid user ID format"),
     query("status")
       .optional()
@@ -213,7 +213,7 @@ export const validationRules = {
       .withMessage("Subscription ID is required")
       .isString()
       .withMessage("Subscription ID must be a string")
-      .custom((value) => Types.ObjectId.isValid(value))
+      .custom((value) => mongoose.isValidObjectId(value))
       .withMessage("Invalid subscription ID format"),
     body("action")
       .notEmpty()

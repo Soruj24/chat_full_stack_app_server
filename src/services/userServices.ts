@@ -1,4 +1,4 @@
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 import createError from "http-errors";
 import User from "../models/schemas/User"; // ensure User exports IUserDoc
 import { IUser } from "../types";
@@ -12,7 +12,7 @@ interface UpdateOptions {
 
 // ✅ Find user
 export const findUser = async (id: string | undefined): Promise<IUserDoc> => {
-  if (!Types.ObjectId.isValid(id || "")) {
+  if (!mongoose.isValidObjectId(id || "")) {
     throw createError(400, "Invalid user ID");
   }
 
@@ -25,7 +25,7 @@ export const findUser = async (id: string | undefined): Promise<IUserDoc> => {
 
 // ✅ Delete user
 export const deleteUser = async (id: string): Promise<IUserDoc> => {
-  if (!Types.ObjectId.isValid(id)) {
+  if (!mongoose.isValidObjectId(id)) {
     throw createError(400, "Invalid user ID");
   }
 
@@ -42,7 +42,7 @@ export const updateUser = async (
   updates: Partial<IUser>,
   updateOptions: UpdateOptions
 ): Promise<IUserDoc> => {
-  if (!Types.ObjectId.isValid(id)) {
+  if (!mongoose.isValidObjectId(id)) {
     throw createError(400, "Invalid user ID");
   }
 

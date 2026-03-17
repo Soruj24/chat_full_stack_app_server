@@ -21,18 +21,19 @@ export interface ISubscriptionPlan {
 
 export interface IInvoice {
   id: string;
+  stripeInvoiceId: string;
   invoiceNumber: string;
-  date: string;
+  date: Date;
   amount: number;
   currency: string;
   status: 'paid' | 'pending' | 'failed' | 'refunded' | 'draft' | 'open' | 'void' | 'uncollectible';
   pdfUrl?: string;
   paymentMethod?: string;
   description?: string;
-  periodStart?: string;
-  periodEnd?: string;
-  dueDate?: string;
-  paidAt?: string;
+  periodStart?: Date;
+  periodEnd?: Date;
+  dueDate?: Date;
+  paidAt?: Date;
   hostedInvoiceUrl?: string;
   invoicePdf?: string;
   total?: number;
@@ -45,9 +46,9 @@ export interface IInvoice {
   billingReason?: string;
   metadata?: Record<string, any>;
   isFinalized?: boolean;
-  finalizedAt?: string;
+  finalizedAt?: Date;
   emailSent?: boolean;
-  emailSentAt?: string;
+  emailSentAt?: Date;
 }
 
 export interface PaymentMethod {

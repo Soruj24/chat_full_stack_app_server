@@ -87,7 +87,7 @@ export interface ITwoFactorAuth {
   backupCodes?: string[];
   enabledAt?: Date;
   lastUsed?: Date;
-  // method: "totp" | "sms" | "email";
+  method: "totp" | "sms" | "email";
   recoveryCodesUsed?: number;
 }
 
@@ -230,7 +230,7 @@ export interface IUser {
 
   // Security and authentication
   loginHistory: ILoginHistory[];
-  // twoFactorAuth: ITwoFactorAuth;
+  twoFactorAuth: ITwoFactorAuth;
   resetPasswordToken?: string;
   resetPasswordExpires?: Date;
   emailVerificationToken?: string;

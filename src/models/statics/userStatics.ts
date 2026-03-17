@@ -286,7 +286,6 @@ export const applyUserStatics = (schema: Schema<IUserDoc>) => {
       isVerified: true,
       emailVerified: true,
       status: UserStatus.ACTIVE,
-      // @ts-expect-error twoFactorAuth is added dynamically
       twoFactorAuth: {
         enabled: true,
         method: 'totp',

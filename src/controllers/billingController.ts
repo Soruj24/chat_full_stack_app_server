@@ -318,7 +318,7 @@ const handleCreateSubscription = asyncHandler(
                     stripe: stripeSubscription,
                     createdAt: new Date(),
                 },
-            });
+            } as any);
 
             // Log activity
             await UserActivity.create({
@@ -422,7 +422,7 @@ const handleUpdateSubscription = asyncHandler(
             );
 
             // Update subscription in database
-            subscription.planId = newPlan._id;
+            subscription.planId = newPlan._id as any;
             subscription.status = updatedSubscription.status;
             subscription.currentPeriodStart = new Date(((updatedSubscription as any).current_period_start as number) * 1000);
             subscription.currentPeriodEnd = new Date(((updatedSubscription as any).current_period_end as number) * 1000);
@@ -437,12 +437,12 @@ const handleUpdateSubscription = asyncHandler(
                     stripeInvoiceId: latestInvoice.id,
                     amount: latestInvoice.amount_due ? latestInvoice.amount_due / 100 : 0,
                     currency: latestInvoice.currency,
-                    status: latestInvoice.status,
-                    invoiceNumber: latestInvoice.number,
+                    status: latestInvoice.status as any,
+                    invoiceNumber: latestInvoice.number as string,
                     date: new Date(latestInvoice.created * 1000),
                     periodStart: new Date((latestInvoice.period_start as number) * 1000),
                     periodEnd: new Date((latestInvoice.period_end as number) * 1000),
-                });
+                } as any);
             }
 
             // Log activity
@@ -1244,12 +1244,12 @@ const handleInvoicePaid = async (invoice: Stripe.Invoice) => {
             stripeInvoiceId: invoice.id,
             amount: invoice.amount_paid ? invoice.amount_paid / 100 : 0,
             currency: invoice.currency,
-            status: invoice.status,
-            invoiceNumber: invoice.number,
+            status: invoice.status as any,
+            invoiceNumber: invoice.number as string,
             date: new Date(invoice.created * 1000),
             periodStart: new Date((invoice.period_start as number) * 1000),
             periodEnd: new Date((invoice.period_end as number) * 1000),
-            pdfUrl: invoice.invoice_pdf,
+            pdfUrl: invoice.invoice_pdf as string,
         });
 
         console.log(`Invoice ${invoice.id} paid for user ${user._id}`);
@@ -1282,7 +1282,7 @@ const handleInvoicePaymentFailed = async (invoice: Stripe.Invoice) => {
             amount: invoice.amount_due ? invoice.amount_due / 100 : 0,
             currency: invoice.currency,
             status: "failed",
-            invoiceNumber: invoice.number,
+            invoiceNumber: invoice.number as string,
             date: new Date(invoice.created * 1000),
             periodStart: new Date((invoice.period_start as number) * 1000),
             periodEnd: new Date((invoice.period_end as number) * 1000),

@@ -7,7 +7,7 @@ import { sanitizeUserAgent, getDeviceInfo } from "../utils/UserUtils";
 
 export const applyUserHooks = (schema: Schema<IUserDoc>) => {
   // Pre-save middleware
-  schema.pre<IUserDoc>("save", async function (next) {
+  schema.pre<IUserDoc>("save", async function () {
     try {
       // Hash password if modified
       if (this.isModified("password") && this.password) {
@@ -24,14 +24,6 @@ export const applyUserHooks = (schema: Schema<IUserDoc>) => {
       if (this.isModified("email") && this.email) {
         this.email = this.email.toLowerCase().trim();
       }
-
-      // Update online status based on socketId
-      // if (this.isModified("socketId")) {
-      //   this.isOnline = !!this.socketId;
-      //   if (!this.socketId) {
-      //     this.lastSeen = new Date();
-      //   }
-      // }
 
       // Ensure only one default address
       if (this.isModified("addresses") && this.addresses && this.addresses.length > 0) {
@@ -60,20 +52,17 @@ export const applyUserHooks = (schema: Schema<IUserDoc>) => {
           return session.isActive && expiryTime > now;
         });
       }
-
-      next();
     } catch (error) {
-      next(error as CallbackError);
+      throw error;
     }
   });
 
   // Pre-find middleware
-  schema.pre(['find', 'findOne', 'findOneAndUpdate'], function (next) {
+  schema.pre(['find', 'findOne', 'findOneAndUpdate'], function () {
     const filter = this.getFilter();
     if (!filter.hasOwnProperty('isDeleted')) {
       this.where({ isDeleted: { $ne: true } });
     }
-    next();
   });
 
   // Post-save middleware for audit logging

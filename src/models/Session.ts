@@ -72,7 +72,7 @@ const sessionSchema = new Schema<ISessionDoc>(
 sessionSchema.index({ userId: 1, revokedAt: 1, expiresAt: 1 });
 
 // Auto-delete expired sessions (optional, can be handled by TTL index)
-sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+sessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 } as any);
 
 const Session = mongoose.model<ISessionDoc>("Session", sessionSchema);
 export default Session;

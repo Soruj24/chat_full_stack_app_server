@@ -7,6 +7,7 @@ export const createUser = async (userData: CreateUserBody) => {
         
         const hashedPassword = await hashPassword(userData.password);
         const newUser = {
+            username: userData.username,
             firstName: userData.firstName,
             lastName: userData.lastName,
             email: userData.email,
@@ -20,14 +21,11 @@ export const createUser = async (userData: CreateUserBody) => {
             role: 'user',
             isEmailVerified: false,
             status: 'pending',
-            avatar: '',
         };
 
-        const savedUser = await User.create(newUser);
+        const savedUser = await User.create(newUser as any);
 
-
-
-        const user = savedUser.toObject();
+        const user = (savedUser as any).toObject();
         return user;
     } catch (error) {
         throw new Error("Error creating user");

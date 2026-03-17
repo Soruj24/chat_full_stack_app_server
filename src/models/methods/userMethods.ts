@@ -146,15 +146,15 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
 
   // Social methods
   schema.methods.isFollowing = function (userId: Types.ObjectId): boolean {
-    return this.following ? this.following.some((id: Types.ObjectId) => id.equals(userId)) : false;
+    return this.following ? this.following.some((id: any) => id.toString() === userId.toString()) : false;
   };
 
   schema.methods.isBlocked = function (userId: Types.ObjectId): boolean {
-    return this.blockedUsers ? this.blockedUsers.some((id: Types.ObjectId) => id.equals(userId)) : false;
+    return this.blockedUsers ? this.blockedUsers.some((id: any) => id.toString() === userId.toString()) : false;
   };
 
   schema.methods.isFriend = function (userId: Types.ObjectId): boolean {
-    return this.friends ? this.friends.some((id: Types.ObjectId) => id.equals(userId)) : false;
+    return this.friends ? this.friends.some((id: any) => id.toString() === userId.toString()) : false;
   };
 
   schema.methods.canViewProfile = function (viewerId: Types.ObjectId): boolean {
@@ -169,7 +169,7 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
       case ProfileVisibility.FRIENDS:
         return this.isFriend(viewerId);
       case ProfileVisibility.PRIVATE:
-        return this._id.equals(viewerId);
+        return this._id.toString() === viewerId.toString();
       default:
         return true;
     }
@@ -187,13 +187,13 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
 
     // Add to sent requests
     if (!this.friendRequests) this.friendRequests = { sent: [], received: [] };
-    if (!this.friendRequests.sent.some((id: Types.ObjectId) => id.equals(targetUserId))) {
+    if (!this.friendRequests.sent.some((id: any) => id.toString() === targetUserId.toString())) {
       this.friendRequests.sent.push(targetUserId);
     }
 
     // Add to target user's received requests
     if (!targetUser.friendRequests) targetUser.friendRequests = { sent: [], received: [] };
-    if (!targetUser.friendRequests.received.some((id: Types.ObjectId) => id.equals(this._id))) {
+    if (!targetUser.friendRequests.received.some((id: any) => id.toString() === this._id.toString())) {
       targetUser.friendRequests.received.push(this._id);
     }
 
@@ -204,7 +204,7 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
   };
 
   schema.methods.acceptFriendRequest = async function (fromUserId: Types.ObjectId): Promise<boolean> {
-    if (!this.friendRequests?.received.some((id: Types.ObjectId) => id.equals(fromUserId))) {
+    if (!this.friendRequests?.received.some((id: any) => id.toString() === fromUserId.toString())) {
       return false;
     }
 
@@ -212,16 +212,16 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
     if (!fromUser) return false;
 
     // Add to friends lists
-    if (!this.friends.some((id: Types.ObjectId) => id.equals(fromUserId))) {
+    if (!this.friends.some((id: any) => id.toString() === fromUserId.toString())) {
       this.friends.push(fromUserId);
     }
-    if (!fromUser.friends.some((id: Types.ObjectId) => id.equals(this._id))) {
+    if (!fromUser.friends.some((id: any) => id.toString() === this._id.toString())) {
       fromUser.friends.push(this._id);
     }
 
     // Remove from friend requests
-    this.friendRequests.received = this.friendRequests.received.filter((id: Types.ObjectId) => !id.equals(fromUserId));
-    fromUser.friendRequests.sent = fromUser.friendRequests.sent.filter((id: Types.ObjectId) => !id.equals(this._id));
+    this.friendRequests.received = this.friendRequests.received.filter((id: any) => id.toString() !== fromUserId.toString());
+    fromUser.friendRequests.sent = fromUser.friendRequests.sent.filter((id: any) => id.toString() !== this._id.toString());
 
     await Promise.all([this.save(), fromUser.save()]);
 
@@ -235,9 +235,9 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
     this.blockedUsers.push(userIdToBlock);
 
     // Remove from friends and followers
-    this.friends = this.friends.filter((id: Types.ObjectId) => !id.equals(userIdToBlock));
-    this.following = this.following.filter((id: Types.ObjectId) => !id.equals(userIdToBlock));
-    this.followers = this.followers.filter((id: Types.ObjectId) => !id.equals(userIdToBlock));
+    this.friends = this.friends.filter((id: any) => id.toString() !== userIdToBlock.toString());
+    this.following = this.following.filter((id: any) => id.toString() !== userIdToBlock.toString());
+    this.followers = this.followers.filter((id: any) => id.toString() !== userIdToBlock.toString());
 
     await this.addAuditLog('USER_BLOCKED', { blockedUserId: userIdToBlock });
     return this.save().then(() => true);
@@ -246,7 +246,7 @@ export const applyUserMethods = (schema: Schema<IUserDoc>) => {
   schema.methods.unblockUser = async function (userIdToUnblock: Types.ObjectId): Promise<boolean> {
     if (!this.isBlocked(userIdToUnblock)) return false;
 
-    this.blockedUsers = this.blockedUsers.filter((id: Types.ObjectId) => !id.equals(userIdToUnblock));
+    this.blockedUsers = this.blockedUsers.filter((id: any) => id.toString() !== userIdToUnblock.toString());
 
     await this.addAuditLog('USER_UNBLOCKED', { unblockedUserId: userIdToUnblock });
     return this.save().then(() => true);

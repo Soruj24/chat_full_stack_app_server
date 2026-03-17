@@ -155,10 +155,10 @@ export const handleDeleteFile = asyncHandler(
 
     try {
       // 1. Delete from Cloudinary
-      const result = await cloudinary.uploader.destroy(public_id);
+      const result = await cloudinary.uploader.destroy(public_id as string);
       
       // 2. Delete from database
-      await UserDocument.findOneAndDelete({ publicId: public_id });
+      await UserDocument.findOneAndDelete({ publicId: public_id as string });
 
       successResponse(res, {
         statusCode: 200,

@@ -159,7 +159,7 @@ const NotificationSchema: Schema<INotification> = new Schema({
 NotificationSchema.index({ userId: 1, read: 1, sentAt: -1 });
 NotificationSchema.index({ category: 1, sentAt: -1 });
 NotificationSchema.index({ type: 1, priority: 1 });
-NotificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
+NotificationSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 } as any);
 NotificationSchema.index({ scheduledFor: 1 });
 
 // Virtual for notification status
@@ -181,11 +181,10 @@ NotificationSchema.virtual('isScheduled').get(function (this: INotification) {
 });
 
 // Pre-save middleware to set sentAt for non-scheduled notifications
-NotificationSchema.pre('save', function (this: INotification, next) {
+NotificationSchema.pre('save', function (this: INotification) {
     if (!this.scheduledFor || this.scheduledFor <= new Date()) {
         this.sentAt = new Date();
     }
-    next();
 });
 
 // Static method to get user notifications with pagination
@@ -295,9 +294,8 @@ NotificationSchema.methods.markAsRead = function () {
 };
 
 // Pre-remove middleware to clean up related data
-NotificationSchema.pre('deleteOne', { document: true }, async function (next) {
+NotificationSchema.pre('deleteOne', { document: true }, async function () {
     // Clean up any related data if needed
-    next();
 });
 
 const Notification: Model<INotification> = mongoose.model<INotification>('Notification', NotificationSchema);

@@ -170,25 +170,27 @@ const invoiceSchema = new Schema<InvoiceDocument>(
     toJSON: {
       virtuals: true,
       transform: function(doc, ret) {
-        delete ret._id;
-        delete ret.__v;
-        delete ret.createdAt;
-        delete ret.updatedAt;
-        delete ret.metadata;
-        delete ret.stripeInvoiceId;
-        delete ret.isFinalized;
-        delete ret.finalizedAt;
-        delete ret.emailSent;
-        delete ret.emailSentAt;
-        return ret;
+        const transformed = ret as any;
+        delete transformed._id;
+        delete transformed.__v;
+        delete transformed.createdAt;
+        delete transformed.updatedAt;
+        delete transformed.metadata;
+        delete transformed.stripeInvoiceId;
+        delete transformed.isFinalized;
+        delete transformed.finalizedAt;
+        delete transformed.emailSent;
+        delete transformed.emailSentAt;
+        return transformed;
       },
     },
     toObject: {
       virtuals: true,
       transform: function(doc, ret) {
-        delete ret._id;
-        delete ret.__v;
-        return ret;
+        const transformed = ret as any;
+        delete transformed._id;
+        delete transformed.__v;
+        return transformed;
       },
     },
   }
@@ -248,8 +250,8 @@ invoiceSchema.virtual('user', {
 
 // Indexes
 invoiceSchema.index({ userId: 1, date: -1 });
-invoiceSchema.index({ stripeInvoiceId: 1 }, { unique: true });
-invoiceSchema.index({ invoiceNumber: 1 }, { unique: true });
+invoiceSchema.index({ stripeInvoiceId: 1 }, { unique: true } as any);
+invoiceSchema.index({ invoiceNumber: 1 }, { unique: true } as any);
 invoiceSchema.index({ status: 1, dueDate: 1 });
 invoiceSchema.index({ subscriptionId: 1 });
 invoiceSchema.index({ date: -1 });
@@ -258,7 +260,7 @@ invoiceSchema.index({ amountDue: 1 });
 invoiceSchema.index({ emailSent: 1, date: 1 });
 
 // Pre-save hook to generate invoice number if not provided
-invoiceSchema.pre<InvoiceDocument>('save', async function (this: InvoiceDocument, next) {
+invoiceSchema.pre<InvoiceDocument>('save', async function (this: InvoiceDocument) {
   if (!this.invoiceNumber) {
     // Generate invoice number: INV-YYYYMM-XXXX
     const now = new Date();
@@ -300,8 +302,6 @@ invoiceSchema.pre<InvoiceDocument>('save', async function (this: InvoiceDocument
   if (!this.amountRemaining) {
     this.amountRemaining = (this.amountDue ?? 0) - (this.amountPaid ?? 0);
   }
-
-  next();
 });
 
 // Static method to find invoices by user
