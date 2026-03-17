@@ -120,6 +120,12 @@ app.use(hpp());
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: NODE_ENV === "production" ? 100 : 1000,
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      message: options.message.error || options.message,
+    });
+  },
   message: {
     error: "Too many requests from this IP, please try again later.",
   },
@@ -133,6 +139,12 @@ const limiter = rateLimit({
 const authLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: NODE_ENV === "production" ? 20 : 100,
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      message: options.message.error || options.message,
+    });
+  },
   message: {
     error:
       "Too many authentication attempts from this IP, please try again after an hour.",
@@ -144,6 +156,12 @@ const authLimiter = rateLimit({
 const forgotPasswordLimiter = rateLimit({
   windowMs: 60 * 60 * 1000, // 1 hour
   max: NODE_ENV === "production" ? 5 : 20,
+  handler: (req, res, next, options) => {
+    res.status(options.statusCode).json({
+      success: false,
+      message: options.message.error || options.message,
+    });
+  },
   message: {
     error:
       "Too many password reset requests from this IP, please try again after an hour.",
